@@ -39,7 +39,6 @@ const DataTable = () => {
   `
 
   const { confirm, confirmProps } = useConfirm()
-  
   interface IElection {
     id: number,
     jurisdictionName: string,
@@ -48,7 +47,6 @@ const DataTable = () => {
     source: string,
     status: string
   }
-  
   const tempData: IElection[] = [
     {
       id: 0,
@@ -94,9 +92,7 @@ const DataTable = () => {
       ),
       yesButtonLabel: 'Reprocess',
       yesButtonIntent: Intent.SUCCESS,
-      onYesClick: async () => {
-        alert('Deleted Successfully');
-      },
+      onYesClick: async () => alert('Reprocessed Successfully'),
     })
   }
 
@@ -113,9 +109,7 @@ const DataTable = () => {
       ),
       yesButtonLabel: 'Delete',
       yesButtonIntent: Intent.DANGER,
-      onYesClick: async () => {
-        alert('Deleted Successfully');
-      },
+      onYesClick: async () => alert('Deleted Successfully'),
     })
   }
 
@@ -156,8 +150,12 @@ const DataTable = () => {
                 return (
                   <SpacedButtonGroup>
                     <ActionButton to={`/election`}><Icon icon="eye-open" intent={Intent.PRIMARY}></Icon></ActionButton>
-                    <Button onClick={() => onClickReprocessJurisdiction(row.values.id, row.values.jurisdictionName)}><Icon icon="repeat" intent={Intent.SUCCESS}></Icon></Button>
-                    <Button onClick={() => onClickDeleteJurisdiction(row.values.id, row.values.jurisdictionName)}><Icon icon="trash" intent={Intent.DANGER}></Icon></Button>
+                    <Button onClick={() => onClickReprocessJurisdiction(row.values.id, row.values.jurisdictionName)}>
+                      <Icon icon="repeat" intent={Intent.SUCCESS}></Icon>
+                    </Button>
+                    <Button onClick={() => onClickDeleteJurisdiction(row.values.id, row.values.jurisdictionName)}>
+                      <Icon icon="trash" intent={Intent.DANGER}></Icon>
+                    </Button>
                   </SpacedButtonGroup>
                 )
               }
@@ -179,5 +177,5 @@ const ElectionData = () => {
     </Wrapper>
   )
 }
- 
-export default ElectionData;
+
+export default ElectionData

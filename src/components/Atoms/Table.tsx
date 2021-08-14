@@ -5,7 +5,6 @@ import { Icon, HTMLTable } from '@blueprintjs/core'
 
 const StyledTable = styled.table`
   width: 100%;
-
   thead,
   tfoot {
     background-color: #e1e8ed; /* BlueprintJS light-gray3 */
@@ -13,13 +12,11 @@ const StyledTable = styled.table`
     color: #394b59; /* BlueprintJS dark-gray5 */
     font-weight: 700;
   }
-
   th,
   td {
     margin: 0;
     padding: 0.5rem 0.4rem;
   }
-
   tr:nth-child(even) {
     background-color: #f5f8fa; /* BlueprintJS light-gray5 */
   }
@@ -162,40 +159,33 @@ export const FlexTable = styled(({ scrollable, ...props }) => (
   flex-direction: column;
   box-shadow: 0 0 0 1px rgb(16 22 26 / 15%); /* Copied from Blueprint */
   width: 100%;
-
   thead {
     flex: 0 0 auto;
     box-shadow: inset 0 -1px 0 0 rgb(16 22 26 / 15%); /* Copied from Blueprint */
     width: 100%;
   }
-
   tbody {
     display: block;
     flex: 1 1 auto;
     overflow-y: ${props => (props.scrollable ? 'scroll' : 'none')};
   }
-
   /* Add a hidden scrollbar so headers line up with columns */
   thead tr::after {
     visibility: hidden;
     overflow-y: ${props => (props.scrollable ? 'scroll' : 'none')};
     content: '';
   }
-
   tr {
     display: flex;
   }
-
   th,
   td {
     flex: 1 0 0;
   }
-
   td {
     overflow-x: hidden;
     overflow-wrap: break-word;
   }
-
   /* Remove Blueprint border from first row */
   tbody tr:first-child td {
     box-shadow: none !important; /* stylelint-disable-line declaration-no-important */
