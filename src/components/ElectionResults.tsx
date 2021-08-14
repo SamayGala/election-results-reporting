@@ -30,12 +30,12 @@ interface IValues {
   contests: IContest[]
 }
 
-const ResultsDataUpload = () => {
-  const UploadResultsDataWrapper = styled.div`
-    width: 100%;
-    padding: 30px;
-  `
+const UploadResultsDataWrapper = styled.div`
+  width: 100%;
+  padding: 30px;
+`
 
+const ResultsDataUpload = () => {
   const resultsDataFile: IFileInfo = {
     file: null,
     processing: null,
@@ -58,32 +58,32 @@ const ResultsDataUpload = () => {
   );
 }
 
+const ResultsDataFormWrapper = styled.div`
+  width: 100%;
+  background-color: #ebf1f5;
+  padding: 30px;
+`
+
+const WideField = styled(FormField)`
+  width: 100%;
+`
+
+const SpacedDiv = styled.div`
+  margin: 20px auto;
+`
+
+const Select = styled(HTMLSelect)`
+  // margin-left: 5px;
+  width: 100%;
+`
+
+const AddButton = styled(FormButton)`
+  font-size: 24px;
+  font-weight: bold;
+  padding: 0 0 4px 0;
+`
+
 const ResultsDataForm = () => {
-  const ResultsDataFormWrapper = styled.div`
-    width: 100%;
-    background-color: #ebf1f5;
-    padding: 30px;
-  `
-
-  const WideField = styled(FormField)`
-    width: 100%;
-  `
-
-  const SpacedDiv = styled.div`
-    margin: 20px auto;
-  `
-
-  const Select = styled(HTMLSelect)`
-    // margin-left: 5px;
-    width: 100%;
-  `
-
-  const AddButton = styled(FormButton)`
-    font-size: 24px;
-    font-weight: bold;
-    padding: 0 0 4px 0;
-  `
-
   const contestValues: IContest[] = [
     {
       id: '',
@@ -233,7 +233,7 @@ const ResultsDataForm = () => {
                 <h3>Vote Totals</h3>
                 {values.contests.map((contest: IContest, i: number) => {
                   return (
-                    <div key={contest.id}>
+                    <div key={i}>
                       <FormSection>
                         {/* eslint-disable jsx-a11y/label-has-associated-control */}
                         <label htmlFor="contest">
@@ -256,7 +256,7 @@ const ResultsDataForm = () => {
                       <section>
                         {contest.candidates.map((choice: ICandidate, j: number) => {
                           return (
-                            <FormSection key={contest.id + choice.id}>
+                            <FormSection key={`${i}-${j}`}>
                               <label htmlFor="contestTotal1">
                                 {choice.name}
                                 {/* istanbul ignore next */}
@@ -295,14 +295,14 @@ const ResultsDataForm = () => {
   )
 }
 
-const ElectionResults: React.FC = () => {
-  const ResponsiveInner = styled(Inner)`
-    @media only screen and (max-width: 768px) {
-      flex-direction: column-reverse;
-      align-items: center;
-    }
-  `
+const ResponsiveInner = styled(Inner)`
+  @media only screen and (max-width: 768px) {
+    flex-direction: column-reverse;
+    align-items: center;
+  }
+`
 
+const ElectionResults: React.FC = () => {
   return (
     <Wrapper>
       <ResponsiveInner>

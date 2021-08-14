@@ -7,8 +7,7 @@ import { Wrapper, Inner } from './Atoms/Wrapper'
 import { Table } from './Atoms/Table'
 import { useConfirm, Confirm } from './Atoms/Confirm'
 
-const DataTable = () => {
-  const DataTableWrapper = styled.div`
+const DataTableWrapper = styled.div`
     width: 100%;
     margin-top: 30px;
   `
@@ -38,7 +37,9 @@ const DataTable = () => {
     width: 20px;
   `
 
+const DataTable = () => {
   const { confirm, confirmProps } = useConfirm()
+
   interface IElection {
     id: number,
     jurisdictionName: string,
