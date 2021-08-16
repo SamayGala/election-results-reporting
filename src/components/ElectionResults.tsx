@@ -233,7 +233,7 @@ const ResultsDataForm = () => {
                 <h3>Vote Totals</h3>
                 {values.contests.map((contest: IContest, i: number) => {
                   return (
-                    <div key={i}>
+                    <div key={contest.id}>
                       <FormSection>
                         {/* eslint-disable jsx-a11y/label-has-associated-control */}
                         <label htmlFor="contest">
@@ -256,7 +256,7 @@ const ResultsDataForm = () => {
                       <section>
                         {contest.candidates.map((choice: ICandidate, j: number) => {
                           return (
-                            <FormSection key={`${i}-${j}`}>
+                            <FormSection key={`${contest.id}-${choice.id}`}>
                               <label htmlFor="contestTotal1">
                                 {choice.name}
                                 {/* istanbul ignore next */}
@@ -302,15 +302,12 @@ const ResponsiveInner = styled(Inner)`
   }
 `
 
-const ElectionResults: React.FC = () => {
-return (
-    <Wrapper>
-      <ResponsiveInner>
-        <ResultsDataForm />
-        <ResultsDataUpload />
-      </ResponsiveInner>
-    </Wrapper>
-  )
-}
+const ElectionResults: React.FC = () => 
+  <Wrapper>
+    <ResponsiveInner>
+      <ResultsDataForm />
+      <ResultsDataUpload />
+    </ResponsiveInner>
+  </Wrapper>
 
 export default ElectionResults
