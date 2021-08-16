@@ -35,12 +35,12 @@ const UploadResultsDataWrapper = styled.div`
   padding: 30px;
 `
 
-const ResultsDataUpload = () => {
-  const resultsDataFile: IFileInfo = {
-    file: null,
-    processing: null,
-  }
+const resultsDataFile: IFileInfo = {
+  file: null,
+  processing: null,
+}
 
+const ResultsDataUpload = () => {
   return (
     <UploadResultsDataWrapper>
       <h2>Upload Results Data</h2>
@@ -303,7 +303,7 @@ const ResponsiveInner = styled(Inner)`
 `
 
 const ElectionResults: React.FC = () => {
-  return (
+return (
     <Wrapper>
       <ResponsiveInner>
         <ResultsDataForm />

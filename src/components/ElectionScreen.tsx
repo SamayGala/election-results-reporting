@@ -253,15 +253,12 @@ const ResponsiveInner = styled(Inner)`
   }
 `
 
-const ElectionScreen: React.FC = () => {
-  return (
-    <Wrapper>
-      <ResponsiveInner>
-        <CreateElection />
-        <ActiveElections />
-      </ResponsiveInner>
-    </Wrapper>
-  )
-}
+const ElectionScreen: React.FC = () =>
+  <Wrapper>
+    <ResponsiveInner>
+      <CreateElection />
+      <ActiveElections />
+    </ResponsiveInner>
+  </Wrapper>
 
 export default ElectionScreen
