@@ -178,7 +178,6 @@ const ResultsDataForm = () => {
   const onSubmit = async (electionResultsData: IElectionResult) => {
     setSubmitting(true)
     electionResultsData.source="Data Entry"
-    
     const response: { status: string, errors: {errorType: string; message: string;}[] } | null = await api(`/election/${electionId}/jurisdiction/${jurisdictionId}/results`, {
       method: 'POST',
       body: JSON.stringify(electionResultsData),

@@ -110,18 +110,18 @@ const DataTable = ({ user }: { user: IElectionAdmin }) => {
               {/* <CongestedP>Town Name here</CongestedP> */}
               <CongestedH4>{contest.name}</CongestedH4>
               {/* Implement over and under votes formula */}
-              <p>{totalBallotsCast} ballots cast 
+              <p>{totalBallotsCast} ballots cast
               {/* / {contest.candidates.map(candidate => candidate.numVotes).reduce((prev, curr) => prev+parseInt(curr), 0)-parseInt(totalBallotsCast)/2} overvotes / {parseInt(totalBallotsCast)/2 - contest.candidates.map(candidate => candidate.numVotes).reduce((prev, curr) => prev+parseInt(curr), 0)} undervotes */}
               </p>
-                  <TableDiv>
-                  {contest.candidates.map((candidate)=>(
-                    <p key={candidate.id}>
-                      <span>{candidate.name}</span>
-                      <span>{candidate.numVotes}</span>
-                    </p>
-                  ))}
-                  </TableDiv><br/>
-          </div>
+              <TableDiv>
+              {contest.candidates.map((candidate)=>(
+                <p key={candidate.id}>
+                  <span>{candidate.name}</span>
+                  <span>{candidate.numVotes}</span>
+                </p>
+              ))}
+              </TableDiv><br/>
+            </div>
           )
         )}
         </>

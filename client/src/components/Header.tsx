@@ -162,12 +162,12 @@ const Header: React.FC<{}> = () => {
             <NavbarGroup align={Alignment.RIGHT}>
               { auth && !auth.user && location.pathname !== '/admin' && (
                 <LinkButton
-                icon="user"
-                to={`/admin`}
-                outlined
-              >
-                Admin Login
-              </LinkButton>
+                  icon="user"
+                  to={`/admin`}
+                  outlined
+                >
+                  Admin Login
+                </LinkButton>
               )}
               { auth && auth.user && (
               <>
