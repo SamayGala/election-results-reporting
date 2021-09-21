@@ -64,7 +64,7 @@ def bulk_update_from_definitions(
     session, election: Election, definition_json
 ) -> None:
     """
-    Updates the precincts  for an election all at once. Requires a SQLAlchemy session to use,
+    Updates the precincts for an election all at once. Requires a SQLAlchemy session to use,
     and uses a nested transaction to ensure the changes made are atomic. Depending on your
     session configuration, you may need to explicitly call `commit()` on the session to flush
     changes to the database.

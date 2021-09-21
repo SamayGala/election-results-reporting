@@ -117,7 +117,6 @@ const CreateElection = ({ user }: { user: IElectionAdmin }) => {
   }
   const timezones:ITimezone = timezoneDict
   const usrTz: string = Intl.DateTimeFormat().resolvedOptions().timeZone
-  
 
   interface IObjectIterableValues extends IElection {
     readonly [key: string]: any;
@@ -152,7 +151,6 @@ const CreateElection = ({ user }: { user: IElectionAdmin }) => {
         }
       }
     }
-    
     const response: { status: string, electionId: string } | null = await api('/election', {
       method: 'POST',
       body: formData
@@ -175,7 +173,6 @@ const CreateElection = ({ user }: { user: IElectionAdmin }) => {
     jurisdictions: Yup.mixed().required('File required'),
     definition: Yup.mixed().required('File required'),
   })
-  
   return (
     <Formik
       onSubmit={onSubmit}
@@ -251,6 +248,7 @@ const CreateElection = ({ user }: { user: IElectionAdmin }) => {
                 id="pollsTimezone"
                 name="pollsTimezone"
                 type="text"
+                placeholder="CST"
                 component={WideField}
               />
             </InlineLabel>
