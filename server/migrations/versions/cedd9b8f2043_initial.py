@@ -1,10 +1,8 @@
 # pylint: disable=invalid-name
 """Initial
-
 Revision ID: cedd9b8f2043
 Revises: 
 Create Date: 2021-10-05 10:42:45.680471+00:00
-
 """
 from alembic import op
 import sqlalchemy as sa
