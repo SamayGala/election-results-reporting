@@ -15,7 +15,6 @@ const renderView = (route: string) => renderWithRouter(<App />, { route })
 
 describe('Admin screen', () => {
   const { reload } = window.location;
-  
   beforeAll(() => {
     Object.defineProperty(window, 'location', {
       writable: true,
@@ -74,8 +73,8 @@ describe('Admin screen', () => {
       'definition',
       definitionFile,
       definitionFile.name
-    )
-    
+    )  
+
     const expectedCalls = [
       eaApiCalls.getUser,
       eaApiCalls.postNewElection(newElectionData),
@@ -91,13 +90,12 @@ describe('Admin screen', () => {
 
       // Try to create an election without typing in an election name
       screen.getByRole('heading', { name: 'Create New Election' })
-
+      
       await act(async () => {
         const createElectionButton = await screen.findByRole('button', {
           name: 'Create New Election',
         })
         userEvent.click(createElectionButton)
-  
         expect(await screen.findByTestId('electionName-error')).toHaveTextContent('Required')
         expect(screen.getByTestId('electionDate-error')).toHaveTextContent('Required')
         expect(screen.getByTestId('pollsOpen-error')).toHaveTextContent('Required')

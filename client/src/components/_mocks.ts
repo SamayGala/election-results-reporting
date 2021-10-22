@@ -109,7 +109,6 @@ const definitionFileMockData = {
   ]
 }
 
-
 export const apiCalls = {
   serverError: (
     url: string,

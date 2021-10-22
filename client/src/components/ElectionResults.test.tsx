@@ -12,7 +12,6 @@ const renderView = (route: string) => renderWithRouter(<App />, { route })
 
 describe('Election Results screen', () => {
   const { reload } = window.location;
-  
   beforeAll(() => {
     Object.defineProperty(window, 'location', {
       writable: true,
@@ -89,11 +88,11 @@ describe('Election Results screen', () => {
         const precinctSelect = screen.getByRole('combobox', { name: /Precinct/ })
         const ballotsCastInput = screen.getByLabelText(/Total Ballots Cast/)
         const contestSelect = screen.getByRole('combobox', { name: /Contest \[1\]/ })
-        
+
         // Validation tests
         await within(precinctSelect.closest('label')! as HTMLElement).findByText('Required')
         await within(contestSelect.closest('label')! as HTMLElement).findByText('Required')
-        
+
         await within(ballotsCastInput.closest('label')! as HTMLElement).findByText('Required')
         userEvent.type(ballotsCastInput, 'string')
         await within(ballotsCastInput.closest('label')! as HTMLElement).findByText('Must be a number')
@@ -120,7 +119,6 @@ describe('Election Results screen', () => {
         userEvent.clear(candidateInput)
         userEvent.type(candidateInput, '-1')
         await within(candidateInput.closest('label')! as HTMLElement).findByText('Must be a positive number')
-        
         const writeInInput = screen.getByLabelText(/Write-in/)
         await within(writeInInput.closest('label')! as HTMLElement).findByText('Required')
         userEvent.type(writeInInput, 'string')
@@ -128,7 +126,6 @@ describe('Election Results screen', () => {
         userEvent.clear(writeInInput)
         userEvent.type(writeInInput, '-1')
         await within(writeInInput.closest('label')! as HTMLElement).findByText('Must be a positive number')
-        
         // Fill out remaining election results form
         userEvent.clear(ballotsCastInput)
         userEvent.type(
@@ -208,7 +205,6 @@ describe('Election Results screen', () => {
         const electionResultsButton = await screen.findByRole('button', {
           name: 'Submit',
         })
-        
         // Fill out election results form
         const precinctSelect = screen.getByRole('combobox', { name: /Precinct/ })
         const ballotsCastInput = screen.getByLabelText(/Total Ballots Cast/)
@@ -283,7 +279,6 @@ describe('Election Results screen', () => {
       screen.getByRole('heading', {
         name: 'Election results successfully entered!',
       })
-      
       expect(screen.queryByRole('heading', { name: 'Election Results Data' })).not.toBeInTheDocument()
     })
   })
@@ -303,7 +298,6 @@ describe('Election Results screen', () => {
         name: 'Upload File',
       })
       userEvent.click(resultsFileButton)
-      
       expect(await screen.findByText('You must upload a file')).toBeInTheDocument()
     })
   })

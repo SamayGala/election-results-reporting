@@ -42,7 +42,6 @@ describe('Election Data screen', () => {
       const { container } = renderView('/election/election-id-1/data')
 
       await screen.findByRole('heading', { name: 'Election 1' })
-      
       // There should be ONLY 1 table element
       const cols = ['Jurisdiction Name', 'File Name', 'Created At', 'Source', 'Actions']
 
@@ -59,7 +58,6 @@ describe('Election Data screen', () => {
       headers.forEach((th, idx) => {
         expect(th).toHaveAttribute("title", cols[idx])
       })
-      
       // The table should have ONLY 1 tbody tag
       const tbody = table[0].getElementsByTagName('tbody')
       expect(tbody).toHaveLength(1)
@@ -86,11 +84,11 @@ describe('Election Data screen', () => {
       renderView('/election/election-id-1/data')
 
       await screen.findByRole('heading', { name: 'Election 1' })
-      
+
       // There should be ONLY 1 table element
       const cols = ['Jurisdiction Name', 'File Name', 'Created At', 'Source', 'Actions']
       const rowData = ['Jurisdiction 1', 'File 1', 'Tue, 19 Oct 2021 16:55:49 GMT', 'Data Entry', /eye-open/]
-      
+
       const table = await screen.findAllByRole('table')
       expect(table).toHaveLength(1)
 
@@ -104,7 +102,6 @@ describe('Election Data screen', () => {
       headers.forEach((th, idx) => {
         expect(th).toHaveAttribute("title", cols[idx])
       })
-      
       // The table should have ONLY 1 tbody tag
       const tbody = table[0].getElementsByTagName('tbody')
       expect(tbody).toHaveLength(1)
@@ -131,14 +128,12 @@ describe('Election Data screen', () => {
       renderView('/election/election-id-1/data')
 
       await screen.findByRole('heading', { name: 'Election 1' })
-      
       // There should be ONLY 1 table element
       const cols = ['Jurisdiction Name', 'File Name', 'Created At', 'Source', 'Actions']
       const rowData = [
         ['Jurisdiction 1', 'File 1', 'Tue, 19 Oct 2021 16:55:49 GMT', 'Data Entry', /eye-open/],
         ['Jurisdiction 2', 'File 2', 'Wed, 20 Oct 2021 15:41:24 GMT', 'Data Entry', /eye-open/]
       ]
-      
       const table = await screen.findAllByRole('table')
       expect(table).toHaveLength(1)
 
@@ -152,7 +147,6 @@ describe('Election Data screen', () => {
       headers.forEach((th, idx) => {
         expect(th).toHaveAttribute("title", cols[idx])
       })
-      
       // The table should have ONLY 1 tbody tag
       const tbody = table[0].getElementsByTagName('tbody')
       expect(tbody).toHaveLength(1)
@@ -184,7 +178,6 @@ describe('Election Data screen', () => {
       // There should be ONLY 1 table element
       const cols = ['Jurisdiction Name', 'File Name', 'Created At', 'Source', 'Actions']
       const rowData = ['Jurisdiction 1', 'File 1', 'Tue, 19 Oct 2021 16:55:49 GMT', 'Data Entry', /eye-open/]
-      
       const table = await screen.findAllByRole('table')
       expect(table).toHaveLength(1)
 
@@ -198,7 +191,6 @@ describe('Election Data screen', () => {
       headers.forEach((th, idx) => {
         expect(th).toHaveAttribute("title", cols[idx])
       })
-      
       // The table should have ONLY 1 tbody tag
       const tbody = table[0].getElementsByTagName('tbody')
       expect(tbody).toHaveLength(1)
