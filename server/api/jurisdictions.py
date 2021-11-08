@@ -52,8 +52,8 @@ def bulk_update_jurisdictions(
         # Clear existing admins.
         session.query(JurisdictionAdministration).filter(
             JurisdictionAdministration.jurisdiction_id.in_(
-                Jurisdiction.query.filter_by(election_id=election.id)
-                .with_entities(Jurisdiction.id)
+                ElectionJurisdiction.query.filter_by(election_id=election.id)
+                .with_entities(ElectionJurisdiction.jurisdiction_id)
                 .subquery()
             )
         ).delete(synchronize_session="fetch")
@@ -67,37 +67,20 @@ def bulk_update_jurisdictions(
                 user = User(id=str(uuid.uuid4()), email=email)
                 session.add(user)
 
-            # Find or create the jurisdiction by name.
-            jurisdiction = Jurisdiction.query.filter_by(
-                election=election, name=name
-            ).one_or_none()
+            # Find the jurisdiction by name.
+            # Creating Jurisdiction is not allowed here, since they are seeded/created in the start
+            jurisdiction = Jurisdiction.query\
+            .filter_by(name=name)\
+            .join(ElectionJurisdiction, and_(ElectionJurisdiction.jurisdiction_id == Jurisdiction.id, ElectionJurisdiction.election_id == election.id))\
+            .one_or_none()
 
             if not jurisdiction:
-                jurisdiction = Jurisdiction(
-                    id=str(uuid.uuid4()), election=election, name=name
-                )
-                session.add(jurisdiction)
+                raise BadRequest("Invalid Jurisdiction")
 
             # Link the user to the jurisdiction as an admin.
             admin = JurisdictionAdministration(jurisdiction=jurisdiction, user=user)
             session.add(admin)
             new_admins.append(admin)
-
-        # Delete unmanaged jurisdictions.
-        unmanaged_admin_id_records = (
-            session.query(Jurisdiction)
-            .outerjoin(JurisdictionAdministration)
-            .filter(
-                Jurisdiction.election == election,
-                JurisdictionAdministration.jurisdiction_id.is_(None),
-            )
-            .with_entities(Jurisdiction.id)
-            .all()
-        )
-        unmanaged_admin_ids = [id for (id,) in unmanaged_admin_id_records]
-        session.query(Jurisdiction).filter(
-            Jurisdiction.id.in_(unmanaged_admin_ids)
-        ).delete(synchronize_session="fetch")
 
         return new_admins
 
@@ -106,23 +89,47 @@ ELECTION_RESULT_SCHEMA = {
     "type": "object",
     "properties": {
         "totalBallotsCast": {"type": "string"},
-        "electionId": {"anyOf": [{"type": "string"}, {"type": "null"}]},
-        "jurisdictionId": {"anyOf": [{"type": "string"}, {"type": "null"}]},
-        "precinctId": {"anyOf": [{"type": "string"}, {"type": "null"}]},
-        "source": {"type": "string", "enum": [source.value for source in ElectionResultSource]}
+        "precinct": {"type": "string"},
+        "source": {"type": "string", "enum": [source.value for source in ElectionResultSource]},
+        "contests": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "id": {"type": "string"},
+                    "candidates": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "id": {"type": "string"},
+                                "numVotes": {"type": "string"}
+                            },
+                            "required": ["id", "numVotes"],
+                            "additionalProperties": True,
+                        },
+                    },
+                },
+                "required": ["id", "candidates"],
+                "additionalProperties": True,
+            },
+        },
     },
-    "required": ["totalBallotsCast", "electionId", "jurisdictionId", "precinctId"],
+    "required": ["source", "precinct", "contests"],
     "additionalProperties": False,
 }
 
 def validate_election_result(election_result: JSONDict):
     validate(election_result, ELECTION_RESULT_SCHEMA)
-
-    if ElectionResult.query.filter_by(
-        election_id=election_result["electionId"],
-        jurisdiction_id=election_result["jurisdictionId"]
-    ).first():
-        raise Conflict("Results for this election and jurisdiction are already uploaded")
+    record_found = False
+    for itr_contest in election_result["contests"]:
+        if ElectionResult.query.filter_by(
+            precinct_id=election_result["precinct"],
+            candidate_id=itr_contest["candidates"][0]["id"]
+        ).first():
+            record_found = True
+    if record_found:
+        raise Conflict("Results for this precinct are already uploaded")
 
 
 @api.route("/election/<election_id>/jurisdiction/file", methods=["GET"])
@@ -152,46 +159,41 @@ def update_jurisdictions_file(election: Election):
 @api.route("/election/<election_id>/jurisdiction/<jurisdiction_id>/results", methods=["GET"])
 @restrict_access([UserType.JURISDICTION_ADMIN])
 def check_election_result_status(election: Election, jurisdiction: Jurisdiction):
-    if ElectionResult.query.filter_by(election_id=election.id, jurisdiction_id=jurisdiction.id).one_or_none():
-        return jsonify(status="uploaded")
-    return jsonify(status="not-uploaded")
+    records_status = {
+        "uploaded": 0,
+        "notUploaded": 0
+    }
+    for itr_precinct in jurisdiction.precincts:
+        record_found = False
+        for itr_contest in election.contests:
+            if ElectionResult.query.filter_by(precinct_id=itr_precinct.id, candidate_id=itr_contest.candidates[0].id).one_or_none():
+                record_found = True
+        if record_found:
+            records_status["uploaded"] += 1
+        else:
+            records_status["notUploaded"] += 1
+
+    if records_status["notUploaded"]:
+        return jsonify(status="not-uploaded", stats=records_status)
+    return jsonify(status="uploaded")
 
 @api.route("/election/<election_id>/jurisdiction/<jurisdiction_id>/results", methods=["POST"])
 @restrict_access([UserType.JURISDICTION_ADMIN])
-def load_election_results(election: Election, jurisdiction: Jurisdiction):
+def upload_election_results(election: Election, jurisdiction: Jurisdiction):
     request_json = request.get_json()
-    election_result = {
-        'electionId': election.id,
-        'jurisdictionId': jurisdiction.id,
-        'precinctId': request_json['precinct'],
-        'totalBallotsCast': request_json['totalBallotsCast'],
-        'source': request_json['source']
-    }
-    validate_election_result(election_result)
-
-    election_result = ElectionResult(
-        id=str(uuid.uuid4()),
-        total_ballots_cast=election_result['totalBallotsCast'],
-        source=election_result['source'],
-        election_id=election_result['electionId'],
-        jurisdiction_id=election_result['jurisdictionId'],
-        precinct_id=election_result['precinctId']
-    )
-    db_session.add(election_result)
-    db_session.flush()
-
+    validate_election_result(request_json)
     if len(request_json['contests']) != len(list(set(item for item in [itr_contest['id'] for itr_contest in request_json['contests']]))):
-        raise Conflict("Contests should be unique")
+        raise Conflict(f"Contests should be unique for ({election.name} - {jurisdiction.name}) results")
 
     for itr_contest in request_json['contests']:
-        contest = Contest.query.filter_by(id=itr_contest['id']).one_or_none()
-        contest.election_result_id = election_result.id
-
         for itr_candidate in itr_contest['candidates']:
-            candidate = Candidate.query.filter_by(id=itr_candidate['id']).one_or_none()
-            if itr_candidate['name'] == 'Write-in':
-                contest.write_in_votes = itr_candidate['numVotes']
-            else:
-                candidate.num_votes = itr_candidate['numVotes']
+            election_result = ElectionResult(
+                id=str(uuid.uuid4()),
+                source=request_json['source'],
+                precinct_id=request_json['precinct'],
+                candidate_id=itr_candidate['id'],
+                num_votes=itr_candidate['numVotes']
+            )
+            db_session.add(election_result)
     db_session.commit()
     return jsonify(status="ok")

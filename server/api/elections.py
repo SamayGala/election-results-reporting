@@ -22,6 +22,7 @@ from ..activity_log import (
     activity_base,
     record_activity,
 )
+from server.api import jurisdictions
 
 
 ELECTION_SCHEMA = {
@@ -43,7 +44,7 @@ def validate_new_election(election: JSONDict):
     validate(election, ELECTION_SCHEMA)
 
     if Election.query.filter_by(
-        election_name=election["electionName"], organization_id=election["organizationId"]
+        name=election["electionName"], organization_id=election["organizationId"]
     ).first():
         raise Conflict(
             f"An election with name '{election['electionName']}' already exists within your organization"
@@ -60,9 +61,7 @@ def process_definitions_file(session, election: Election, file: File) -> None:
 
     process_file(session, file, process)
 
-def bulk_update_from_definitions(
-    session, election: Election, definition_json
-) -> None:
+def bulk_update_from_definitions(session, election: Election, definition_json) -> None:
     """
     Updates the precincts for an election all at once. Requires a SQLAlchemy session to use,
     and uses a nested transaction to ensure the changes made are atomic. Depending on your
@@ -70,15 +69,39 @@ def bulk_update_from_definitions(
     changes to the database.
     """
     with session.begin_nested():
-        # populate precinct table
-        for itr_precinct in definition_json['precincts']:
-            precinct = Precinct(
-                id=str(uuid.uuid4()),
-                name=itr_precinct['name'],
-                definitions_file_id=itr_precinct['id'],
-                election=election
-            )
-            session.add(precinct)
+        # find election state
+        state = State.query.filter_by(
+            name=definition_json['state'].replace("State of", "").strip()
+        ).one_or_none()
+        # if state is valid then process definition file
+        if not state:
+            #throw error here or create new jurisdiction based on DB seed & use
+            raise Conflict(f"Definitions file error: Invalid State ('{definition_json['state']}')")
+
+        for itr_county in definition_json['counties']:
+            jurisdiction = Jurisdiction.query.filter_by(
+                name=itr_county["name"].replace("County", "").strip(), state_id=state.id
+            ).one_or_none()
+            if not jurisdiction:
+                #throw error here or create new jurisdiction based on DB seed & use
+                raise Conflict(f"Definitions file error: Invalid County ('{itr_county['name']}')")
+
+            election_jurisdiction = ElectionJurisdiction(election_id=election.id, jurisdiction_id=jurisdiction.id)
+            session.add(election_jurisdiction)
+            # populate precinct table
+            for itr_precinct in itr_county['precincts']:
+                precinct = Precinct.query.filter_by(
+                    name=itr_precinct["name"], jurisdiction_id=jurisdiction.id
+                ).one_or_none()
+                if not precinct:
+                    precinct = Precinct(
+                        id=str(uuid.uuid4()),
+                        name=itr_precinct['name'],
+                        definitions_file_id=itr_precinct['id'],
+                        jurisdiction_id=jurisdiction.id
+                    )
+                    session.add(precinct)
+
         # populate contest table
         for itr_contest in definition_json['contests']:
             contest = Contest(
@@ -90,7 +113,6 @@ def bulk_update_from_definitions(
                 definitions_file_id=itr_contest['id'],
                 election=election
             )
-
             session.add(contest)
             # populate candidate table
             for itr_candidate in itr_contest['candidates']:
@@ -101,21 +123,44 @@ def bulk_update_from_definitions(
                     contest=contest
                 )
                 session.add(candidate)
+            # check if write-in is allowed in the contest
+            if itr_contest['allowWriteIns']:
+                candidate = Candidate(
+                    id=str(uuid.uuid4()),
+                    name="Write-in",
+                    definitions_file_id=len(itr_contest['candidates']),
+                    contest=contest
+                )
+                session.add(candidate)
 
 
 DEFINITION_FILE_SCHEMA = {
     "type": "object",
     "properties": {
-        "precincts": {
+        "title": {"type": "string"},
+        "state": {"type": "string"},
+        "counties": {
             "type": "array",
             "items": {
                 "type": "object",
                 "properties": {
                     "id": {"type": "string"},
                     "name": {"type": "string"},
+                    "precincts": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "id": {"type": "string"},
+                                "name": {"type": "string"},
+                            },
+                            "required": ["id", "name"],
+                            "additionalProperties": False,
+                        },
+                    },
                 },
-                "required": ["id", "name"],
-                "additionalProperties": True,
+                "required": ["id", "name", "precincts"],
+                "additionalProperties": False,
             },
         },
         "contests": {
@@ -146,7 +191,7 @@ DEFINITION_FILE_SCHEMA = {
             },
         },
     },
-    "required": ["precincts", "contests"],
+    "required": ["title", "state", "counties", "contests"],
     "additionalProperties": True,
 }
 
@@ -167,7 +212,7 @@ def create_election():
     election['certificationDate'] = datetime.strptime(election['certificationDate'], input_dt_format).replace(tzinfo=timezone.utc)
     election = Election(
         id=str(uuid.uuid4()),
-        election_name=election['electionName'],
+        name=election['electionName'],
         polls_open_at=election['pollsOpen'],
         polls_close_at=election['pollsClose'],
         polls_timezone=election['pollsTimezone'],
@@ -197,14 +242,15 @@ def create_election():
         CreateElection(timestamp=election.created_at, base=activity_base(election))
     )
 
-    process_jurisdictions_file(db_session, election, election.jurisdictions_file)
-    record_activity(
-        UploadAndProcessFile(timestamp=election.jurisdictions_file.processing_started_at, base=activity_base(election), file_type="jurisdictions", error=election.jurisdictions_file.processing_error)
-    )
-
     process_definitions_file(db_session, election, election.definition_file)
     record_activity(
         UploadAndProcessFile(timestamp=election.definition_file.processing_started_at, base=activity_base(election), file_type="election_definition", error=election.definition_file.processing_error)
+    )
+    db_session.flush()  # Ensure we can read ElectionJurisdiction data
+
+    process_jurisdictions_file(db_session, election, election.jurisdictions_file)
+    record_activity(
+        UploadAndProcessFile(timestamp=election.jurisdictions_file.processing_started_at, base=activity_base(election), file_type="jurisdictions", error=election.jurisdictions_file.processing_error)
     )
 
     db_session.commit()
@@ -221,38 +267,104 @@ def delete_election(election: Election):
     return jsonify(status="ok")
 
 
-@api.route("/election/<election_id>/definition/file", methods=["GET"])
+@api.route("/election/<election_id>/jurisdiction/<jurisdiction_id>/definitions", methods=["GET"])
 @restrict_access([UserType.ELECTION_ADMIN, UserType.JURISDICTION_ADMIN])
-def get_definition_file(election: Election):
+def get_definition_file(election: Election, jurisdiction: Jurisdiction):
     contests = []
+    precincts = []
     for itr_contest in election.contests:
-        contest = { key: itr_contest.__dict__[key] for key in itr_contest.__dict__.keys() & {'id', 'name', 'allow_write_ins'} }
-        contest['allowWriteIns'] = contest.pop('allow_write_ins')
+        contest = { key: itr_contest.__dict__[key] for key in itr_contest.__dict__.keys() & {'id', 'name'} }
         contest['candidates'] = [{key: itr_candidate.__dict__[key] for key in itr_candidate.__dict__.keys() & {'id', 'name'} } for itr_candidate in itr_contest.candidates]
         contests.append(contest)
-    precincts = [{key:itr_precinct.__dict__[key] for key in itr_precinct.__dict__.keys() & {'id', 'name'} } for itr_precinct in election.precincts]
+    for itr_precinct in jurisdiction.precincts:
+        record_found = False
+        for itr_contest in election.contests:
+            if ElectionResult.query.filter_by(precinct_id=itr_precinct.id, candidate_id=itr_contest.candidates[0].id).one_or_none():
+                record_found = True
+        if not record_found:
+            precincts.append({ "id": itr_precinct.id, "name": itr_precinct.name })
     return jsonify(contests=contests, precincts=precincts)
 
 
 @api.route("/election/<election_id>/data", methods=["GET"])
 @restrict_access([UserType.ELECTION_ADMIN])
 def get_election_data(election: Election):
-    election_data = []
-    election_results = ElectionResult.query.filter_by(election_id=election.id).all()
+    election_results = db_session.query(
+        Contest.election_id.label('election_id'),
+        Jurisdiction.id.label('jurisdiction_id'),
+        Jurisdiction.name.label('Jurisdiction_name'),
+        Precinct.id.label('precinct_id'),
+        Precinct.name.label('precinct_name'),
+        Contest.id.label('contest_id'),
+        Contest.name.label('contest_name'),
+        Candidate.id.label('candidate_id'),
+        Candidate.name.label('candidate_name'),
+        ElectionResult.created_at.label('created_at'),
+        ElectionResult.source.label('source'),
+        ElectionResult.num_votes.label('num_votes')
+    ).filter(Contest.election_id == election.id)\
+    .join(Candidate, Candidate.contest_id == Contest.id, isouter=True, full=True)\
+    .join(ElectionJurisdiction, ElectionJurisdiction.election_id == Contest.election_id, isouter=True, full=True)\
+    .join(Jurisdiction, Jurisdiction.id == ElectionJurisdiction.jurisdiction_id, isouter=True, full=True)\
+    .join(Precinct, Precinct.jurisdiction_id == Jurisdiction.id, isouter=True, full=True)\
+    .join(ElectionResult, and_(ElectionResult.precinct_id == Precinct.id, ElectionResult.candidate_id == Candidate.id))\
+    .order_by(Contest.election_id, Jurisdiction.id, Precinct.id, Contest.id, Candidate.name)\
+    .all()
+
     if election_results:
+        election_data = []
+        temp_result_obj = {}
+        iter = 0
         for itr_result in election_results:
-            election_data_record = {key: itr_result.__dict__[key] for key in itr_result.__dict__.keys() & {'id', 'source'}}
-            election_data_record['createdAt'] = itr_result.created_at
-            election_data_record['totalBallotsCast'] = itr_result.total_ballots_cast
-            election_data_record['jurisdictionName'] = itr_result.jurisdiction.name
-            election_data_record['fileName'] = itr_result.precinct.name
-            election_data_record['contests'] = []
-            for itr_contest in itr_result.contests:
-                contest = {key:itr_contest.__dict__[key] for key in itr_contest.__dict__.keys() & {'id', 'name', 'allow_write_ins'} }
-                contest['allowWriteIns'] = contest.pop('allow_write_ins')
-                contest['candidates'] = [{'id': itr_candidate.__dict__['id'], 'name': itr_candidate.__dict__['name'], 'numVotes': itr_candidate.__dict__['num_votes'] } for itr_candidate in itr_contest.candidates]
-                contest['candidates'].append({'id': len(itr_contest.candidates), 'name': 'Write-in', 'numVotes': itr_contest.write_in_votes})
-                election_data_record['contests'].append(contest)
-            election_data.append(election_data_record)
+            if 'id' in temp_result_obj and temp_result_obj['id'] != itr_result[1]+'/'+itr_result[3]+'/'+str(iter):
+                election_data.append(temp_result_obj)
+                print(election_data)
+                iter += 1
+                temp_result_obj = {}
+            if 'id' not in temp_result_obj:
+                temp_result_obj['id'] = itr_result[1]+'/'+itr_result[3]+'/'+str(iter)
+                temp_result_obj['jurisdictionName'] = itr_result[2]
+                # Will be File name or Precint name + ballot type
+                temp_result_obj['fileName'] = itr_result[4]
+                temp_result_obj['createdAt'] = itr_result[9]
+                temp_result_obj['source'] = itr_result[10]
+                temp_result_obj['contests'] = [
+                    {
+                        'id': itr_result[5],
+                        'name': itr_result[6],
+                        'totalBallotsCast': itr_result[11],
+                        'candidates': [
+                            {
+                                'id': itr_result[7],
+                                'name': itr_result[8],
+                                'numVotes': itr_result[11]
+                            }
+                        ]
+                    }
+                ]
+            else:
+                latest_contest = len(temp_result_obj['contests']) - 1
+                if temp_result_obj['contests'][latest_contest]['id'] != itr_result[5]:
+                    temp_result_obj['contests'].append({
+                        'id': itr_result[5],
+                        'name': itr_result[6],
+                        'totalBallotsCast': itr_result[11],
+                        'candidates': [
+                            {
+                                'id': itr_result[7],
+                                'name': itr_result[8],
+                                'numVotes': itr_result[11]
+                            }
+                        ]
+                    })
+                else:
+                    temp_result_obj['contests'][latest_contest]['candidates'].append({
+                        'id': itr_result[7],
+                        'name': itr_result[8],
+                        'numVotes': itr_result[11],
+                    })
+                    temp_result_obj['contests'][latest_contest]['totalBallotsCast'] += itr_result[11]
+        election_data.append(temp_result_obj)
+        print(election_data)
         return jsonify(message="Entries Found", data=election_data)
     return jsonify(message="No entry found!")

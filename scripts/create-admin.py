@@ -12,7 +12,7 @@ if __name__ == "__main__":
     org_id, email = sys.argv[1:]  # pylint: disable=unbalanced-tuple-unpacking
     user = User.query.filter_by(email=email).first()
     if not user:
-        user = User(id=str(uuid.uuid4()), email=email, external_id=email)
+        user = User(id=str(uuid.uuid4()), email=email)
         db_session.add(user)
     election_admin = ElectionAdministration(user_id=user.id, organization_id=org_id)
     db_session.add(election_admin)

@@ -152,9 +152,9 @@ def restrict_access(user_types: List[UserType]):
             jurisdiction = None
             if "jurisdiction_id" in kwargs:
                 jurisdiction = find_or_404(
-                    Jurisdiction.query.filter_by(
-                        id=kwargs.pop("jurisdiction_id"), election_id=election.id
-                    )
+                    Jurisdiction.query\
+                    .filter_by(id=kwargs.pop("jurisdiction_id"))\
+                    .join(ElectionJurisdiction, and_(ElectionJurisdiction.jurisdiction_id == Jurisdiction.id, ElectionJurisdiction.election_id == election.id))
                 )
                 kwargs["jurisdiction"] = jurisdiction
 

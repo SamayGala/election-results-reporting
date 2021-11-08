@@ -34,48 +34,48 @@ export const Select = styled(HTMLSelect)`
 `
 
 interface IValues {
-  csv: File | null
+  json: File | null
 }
 
 interface IProps {
-  csvFile: IFileInfo
-  uploadCSVFile: (csv: File) => Promise<boolean>
-  deleteCSVFile?: () => Promise<boolean>
+  jsonFile: IFileInfo
+  uploadJSONFile: (json: File) => Promise<boolean>
+  deleteJSONFile?: () => Promise<boolean>
   title?: string
   description: string
   sampleFileLink: string
   enabled: boolean
 }
 
-const CSVFile: React.FC<IProps> = (props: IProps) => {
-  // Force the form to reset every time props.csvFile changes
+const JSONFile: React.FC<IProps> = (props: IProps) => {
+  // Force the form to reset every time props.jsonFile changes
   // E.g. if we upload or delete a file
   // See https://reactjs.org/blog/2018/06/07/you-probably-dont-need-derived-state.html#recap
   // eslint-disable-next-line @typescript-eslint/no-use-before-define
-  return <CSVFileForm key={Date.now()} {...props} />
+  return <JSONFileForm key={Date.now()} {...props} />
 }
 
-const CSVFileForm = ({
-  csvFile,
-  uploadCSVFile,
-  deleteCSVFile,
+const JSONFileForm = ({
+  jsonFile,
+  uploadJSONFile,
+  deleteJSONFile,
   title,
   description,
   sampleFileLink,
   enabled,
 }: IProps) => {
-  const { file, processing } = csvFile
+  const { file, processing } = jsonFile
   const isProcessing = !!(processing && !processing.completedAt)
   const [isEditing, setIsEditing] = useState<boolean>(!file || isProcessing)
 
   return (
     <Formik
-      initialValues={{ csv: isProcessing ? new File([], file!.name) : null }}
+      initialValues={{ json: isProcessing ? new File([], file!.name) : null }}
       validationSchema={schema}
       validateOnBlur={false}
       onSubmit={async (values: IValues) => {
-        if (values.csv) {
-          await uploadCSVFile(values.csv)
+        if (values.json) {
+          await uploadJSONFile(values.json)
         }
       }}
     >
@@ -114,24 +114,24 @@ const CSVFileForm = ({
                 <>
                   <FileInput
                     inputProps={{
-                      accept: '.csv',
-                      name: 'csv',
+                      accept: '.json',
+                      name: 'json',
                     }}
                     onInputChange={e => {
                       setFieldValue(
-                        'csv',
+                        'json',
                         (e.currentTarget.files && e.currentTarget.files[0]) ||
                           undefined
                       )
                     }}
-                    hasSelection={!!values.csv}
-                    text={values.csv ? values.csv.name : 'Select a CSV...'}
+                    hasSelection={!!values.json}
+                    text={values.json ? values.json.name : 'Select a JSON...'}
                     onBlur={handleBlur}
                     disabled={isSubmitting || isProcessing || !enabled}
                     fill
                   />
-                  {errors.csv && touched.csv && (
-                    <ErrorLabel>{errors.csv}</ErrorLabel>
+                  {errors.json && touched.json && (
+                    <ErrorLabel>{errors.json}</ErrorLabel>
                   )}
                 </>
               ) : (
@@ -175,10 +175,10 @@ const CSVFileForm = ({
                   >
                     Replace File
                   </FormButton>
-                  {deleteCSVFile && (
+                  {deleteJSONFile && (
                     <FormButton
                       key="delete"
-                      onClick={deleteCSVFile}
+                      onClick={deleteJSONFile}
                       disabled={!enabled}
                     >
                       Delete File
@@ -194,4 +194,4 @@ const CSVFileForm = ({
   )
 }
 
-export default CSVFile
+export default JSONFile

@@ -7,6 +7,7 @@ then
     echo "Initializing Organization and Election Admin:"
     export FLASK_ENV=development
     poetry run python -m scripts.cleardb
+    poetry run python -m scripts.seed-states
     ORG_ID=`poetry run python -m scripts.create-org "Test Organization"`
     poetry run python -m scripts.create-admin $ORG_ID "election-admin@example.com"
 fi

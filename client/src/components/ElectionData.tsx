@@ -11,6 +11,7 @@ import { useModal, Modal } from './Atoms/Modal'
 import { IElectionAdmin, useAuthDataContext } from './UserContext'
 import { IContest } from './ElectionContext'
 import { api } from './utilities'
+import { toast } from 'react-toastify'
 
 
 const DataTableWrapper = styled.div`
@@ -83,20 +84,26 @@ const DataTable = ({ user }: { user: IElectionAdmin }) => {
   const { electionId } = useParams<IParams>()
   const [ electionResultsData, setelectionResultsData ] = useState<IElectionData[]>([])
   const { modal, modalProps } = useModal()
-
+  const election = user.organizations.map(organization => organization.elections.filter(election => election.id === electionId)[0]).filter(item=>!!item)[0]
+  
   // Init from Definition
   useEffect( () => {
-    (async () => {
-      const response = await api<IResponse>(`/election/${electionId}/data`, { method: 'GET' })
-      if (response && response.message !== "No entry found!") {
-        setelectionResultsData(response.data)
-      } else {
-        
-      }
-    })()
-  }, [electionId])
+    if (election) {
+      (async () => {
+        const response = await api<IResponse>(`/election/${electionId}/data`)
+        if (response && response.message !== "No entry found!") {
+          setelectionResultsData(response.data)
+        }
+      })()
+    }
+  }, [electionId, election])
 
-  const onClickViewJurisdiction = (fileName: string, totalBallotsCast: string, contests: IContest[]) => {
+  if (!election) {
+    toast.error("404 Not Found")
+    return <Redirect to="/admin" />
+  }
+
+  const onClickViewJurisdiction = (fileName: string, contests: IContest[]) => {
     modal({
       title: (fileName),
       description: (
@@ -105,7 +112,7 @@ const DataTable = ({ user }: { user: IElectionAdmin }) => {
             <div key={contest.id}>
               <CongestedH4>{contest.name}</CongestedH4>
               {/* Implement over and under votes formula */}
-              <p>{totalBallotsCast} ballots cast
+              <p>{contest.totalBallotsCast} ballots cast
               </p>
               <TableDiv>
               {contest.candidates.map((candidate)=>(
@@ -125,7 +132,7 @@ const DataTable = ({ user }: { user: IElectionAdmin }) => {
 
   return (
     <DataTableWrapper>
-      <h2>{user.organizations.map(organization => organization.elections.filter(election => election.id === electionId)[0])[0].electionName}</h2>
+      <h2>{election && election.electionName}</h2>
       <TableWrapper>
         <Table 
           data={electionResultsData}
@@ -158,7 +165,7 @@ const DataTable = ({ user }: { user: IElectionAdmin }) => {
                 const currRow = electionResultsData.filter(data=>data.id === row.values.id)[0]
                 return (
                   <SpacedButtonGroup>
-                    <Button onClick={() => onClickViewJurisdiction(row.values.fileName, currRow.totalBallotsCast, currRow.contests)}>
+                    <Button onClick={() => onClickViewJurisdiction(row.values.fileName, currRow.contests)}>
                       <Icon icon="eye-open" intent={Intent.PRIMARY}></Icon>
                     </Button>
                   </SpacedButtonGroup>
@@ -177,9 +184,7 @@ const DataTable = ({ user }: { user: IElectionAdmin }) => {
 const ElectionData:React.FC = () => {
   const auth = useAuthDataContext()
   if (auth && (!auth.user || auth.user.type !== 'election_admin')) {
-    return (
-    <Redirect to="/admin" />
-    )
+    return <Redirect to="/admin" />
   }
   if (!auth || !auth.user || auth.user.type!=='election_admin') return null
   const { user } = auth

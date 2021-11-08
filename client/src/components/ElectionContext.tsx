@@ -8,6 +8,7 @@ export interface IContest {
   id: string;
   name: string;
   allowWriteIns?: Boolean;
+  totalBallotsCast: string;
   candidates: ICandidate[]
 }
 

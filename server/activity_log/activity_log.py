@@ -62,7 +62,7 @@ def activity_base(election: Election) -> ActivityBase:
         organization_id=election.organization.id,
         organization_name=election.organization.name,
         election_id=election.id,
-        election_name=election.election_name,
+        election_name=election.name,
         user_type=user_type,
         user_key=user_key,
         support_user_email=support_user_email,

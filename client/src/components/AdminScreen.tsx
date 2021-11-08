@@ -4,7 +4,7 @@ import { Redirect } from 'react-router-dom'
 import * as Yup from 'yup'
 
 import { toast } from 'react-toastify'
-import { ButtonGroup, FileInput, Callout } from '@blueprintjs/core'
+import { ButtonGroup, HTMLSelect, FileInput, Callout } from '@blueprintjs/core'
 import styled from 'styled-components'
 
 import { Formik, FormikProps, Field } from 'formik'
@@ -126,7 +126,7 @@ const CreateElection = ({ user }: { user: IElectionAdmin }) => {
     setSubmitting(true)
     const formData: FormData = new FormData()
     const datetimeFields = ['pollsOpen', 'pollsClose']
-    const fileFields = ['jurisdictions', 'electionDefinition']
+    const fileFields = ['jurisdictions', 'definition']
 
     for (const key in newElection) {
       if (datetimeFields.includes(key)) {
@@ -141,16 +141,22 @@ const CreateElection = ({ user }: { user: IElectionAdmin }) => {
           ( (newElection[key] && newElection[key].name ) ? newElection[key].name : undefined )
         )
       } else {
-        if (key !== 'certificationDate' && key !== 'electionDate') {
-          formData.append(key, newElection[key])
-        } else {
+        if (key === 'certificationDate') {
           formData.append(
             'certificationDate',
             new Date(`${newElection.certificationDate}T00:00:00`).toString().split("(")[0].trim()
           )
+        } else if(key === 'electionDate') {
+          continue
+        } else {
+          formData.append(key, newElection[key])
         }
       }
     }
+    // Display FormData key/value
+    // for (var pair of Array.from(formData.entries())) {
+    //   console.log(pair[0]+ ', ' + pair[1]); 
+    // }
 
     const response: { status: string, electionId: string } | null = await api('/election', {
       method: 'POST',
@@ -166,10 +172,11 @@ const CreateElection = ({ user }: { user: IElectionAdmin }) => {
 
   const electionSchema = Yup.object().shape({
     electionName: Yup.string().required('Required'),
+    organizationId: Yup.string().required('Required'),
     electionDate: Yup.string().required('Required'),
     pollsOpen: Yup.string().required('Required'),
     pollsClose: Yup.string().required('Required'),
-    pollsTimezone: Yup.string().required('Required'),
+    pollsTimezone: Yup.string().required('Required').test('valid-timezone-check', 'Must be a valid timezone', (value) => (value ? Object.values(timezones).includes(value.toUpperCase()) : false)),
     certificationDate: Yup.string().required('Required'),
     jurisdictions: Yup.mixed().required('File required'),
     definition: Yup.mixed().required('File required'),
@@ -201,6 +208,27 @@ const CreateElection = ({ user }: { user: IElectionAdmin }) => {
       }: FormikProps<IElection>) => (
         <CreateElectionWrapper>
           <h2>Create New Election</h2>
+          {user.organizations.length > 1 && (
+          <FormSection>
+            {/* eslint-disable jsx-a11y/label-has-associated-control */}
+              <label htmlFor="organizationId">
+                <p>Organization</p>
+                <HTMLSelect
+                  id="organizationId"
+                  name="organizationId"
+                  onChange={e =>
+                    setFieldValue('organizationId', e.currentTarget.value)
+                  }
+                  value={values.organizationId}
+                  options={user.organizations.map(({ id, name }) => ({
+                    label: name,
+                    value: id,
+                  }))}
+                  fill
+                />
+              </label>
+          </FormSection>
+          )}
           <FormSection>
             {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
             <label htmlFor="electionName">

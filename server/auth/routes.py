@@ -69,7 +69,7 @@ auth0_ja = oauth.register(
 def serialize_election(election):
     return {
         "id": election.id,
-        "electionName": election.election_name,
+        "electionName": election.name,
         # "electionDate": str(election.polls_open_at.date()),
         "pollsOpen": election.polls_open_at,
         "pollsClose": election.polls_close_at,
@@ -105,10 +105,11 @@ def auth_me():
                     {
                         "id": jurisdiction.id,
                         "name": jurisdiction.name,
-                        "election": serialize_election(jurisdiction.election)
+                        "election": serialize_election(election)
                     }
                     for jurisdiction in db_user.jurisdictions
-                    if jurisdiction.election.deleted_at is None
+                    for election in jurisdiction.elections
+                    if election.deleted_at is None
                 ],
             )
         else:

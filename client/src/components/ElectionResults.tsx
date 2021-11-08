@@ -14,7 +14,7 @@ import FormSection from './Atoms/Form/FormSection'
 import FormButton from './Atoms/Form/FormButton'
 import FormField from './Atoms/Form/FormField'
 import { ErrorLabel } from './Atoms/Form/_helpers'
-import CSVFile, { IFileInfo } from './CSVForm/index'
+import JSONFile, { IFileInfo } from './JSONForm/index'
 
 import { useAuthDataContext } from './UserContext'
 import { IPrecinct, ICandidate, IContest, IBallotType } from './ElectionContext'
@@ -84,9 +84,9 @@ const ResultsDataUpload = () => {
     <UploadResultsDataWrapper>
       <h2>Upload Results Data</h2>
       <FormSection>
-        <CSVFile
-          csvFile={resultsDataFile}
-          uploadCSVFile={() => Promise.resolve(true)}
+        <JSONFile
+          jsonFile={resultsDataFile}
+          uploadJSONFile={() => Promise.resolve(true)}
           title=""
           description=""
           sampleFileLink=""
@@ -148,10 +148,10 @@ const ResultsDataForm = () => {
   // Init from Definition
   useEffect( () => {
     (async () => {
-      const response = await api<IDefinition>(`/election/${electionId}/definition/file`, { method: 'GET' })
+      const response = await api<IDefinition>(`/election/${electionId}/jurisdiction/${jurisdictionId}/definitions`)
       setElectionDefinition(response)
     })()
-  }, [electionId])
+  }, [electionId, jurisdictionId])
 
   const dummyContests = [
     {
@@ -167,9 +167,6 @@ const ResultsDataForm = () => {
       Array.prototype.push.apply(contestCandidates, contestData.candidates.map((candidate: ICandidate) => {
         return ({id: candidate.id, name: candidate.name, numVotes: ''})
       }))
-      if (contestData.allowWriteIns) {
-        contestCandidates.push({id: `${contestData.candidates.length}`, name: 'Write-in', numVotes: ''})
-      }
     } else {
       contestCandidates.push({id: '', name: '', numVotes: ''})
     }
@@ -179,8 +176,8 @@ const ResultsDataForm = () => {
   const onSubmit = async (electionResultsData: IElectionResult) => {
     setSubmitting(true)
     electionResultsData.source="Data Entry"
-
-    const response: { status: string, errors: {errorType: string; message: string;}[] } | null = await api(`/election/${electionId}/jurisdiction/${jurisdictionId}/results`, {
+    
+    const response: { status: string, errors: {errorType: string, message: string}[] } | null = await api(`/election/${electionId}/jurisdiction/${jurisdictionId}/results`, {
       method: 'POST',
       body: JSON.stringify(electionResultsData),
       headers: {
@@ -284,7 +281,7 @@ const ResultsDataForm = () => {
                       <FormSection>
                         {/* eslint-disable jsx-a11y/label-has-associated-control */}
                         <label htmlFor={`contests[${i}].id`}>
-                        <p>Contest [{i+1}]</p>
+                        <p>{`Contest [${i+1}]`}</p>
                           <div>
                             <Field
                               component={Select}
@@ -359,42 +356,70 @@ const ResponsiveInner = styled(Inner)`
 
 const ElectionResults: React.FC = () => {
   const { electionId, jurisdictionId } = useParams<IParams>()
-  const [ electionResultStatus, setElectionResultStatus ] = useState<{status: string} | null>(null)
-  
+  const [ electionResultStatus, setElectionResultStatus ] = useState<string | null>(null)
+  const [ electionResultsStats, setElectionResultsStats ] = useState<{uploaded: number, notUploaded: number} | undefined>(undefined)
+  let electionJurisdiction = ''
+
   useEffect( () => {
-    (async () => {
-      const response = await api<{status: string}>(`/election/${electionId}/jurisdiction/${jurisdictionId}/results`, { method: 'GET' })
-      setElectionResultStatus(response)
-    })()
-  }, [electionId, jurisdictionId])
+    if (electionJurisdiction) {
+      (async () => {
+        const response = await api<{status: string, stats: {uploaded: number, notUploaded: number} | undefined}>(`/election/${electionId}/jurisdiction/${jurisdictionId}/results`)
+        if (response && response.status) {
+          setElectionResultStatus(response.status)
+        }
+        if (response && response.stats) {
+          setElectionResultsStats(response.stats)
+        }
+      })()
+    }
+  }, [electionId, jurisdictionId, electionJurisdiction])
 
   const auth = useAuthDataContext()
   if (auth && (!auth.user || auth.user.type !== 'jurisdiction_admin')) {
-    return (
-    <Redirect to="/admin" />
-    )
+    return <Redirect to="/admin" />
+  }
+  if (!auth || !auth.user || auth.user.type!=='jurisdiction_admin') return null
+  const { user } = auth
+  
+  const electionJurisdictionObj = user.jurisdictions.filter(jurisdiction => jurisdiction.id === jurisdictionId && jurisdiction.election.id === electionId)[0]
+  electionJurisdiction = electionJurisdictionObj ? `${electionJurisdictionObj.election.electionName} - ${electionJurisdictionObj.name}` : ''
+  if (!electionJurisdiction) {
+    toast.error("404 Not Found")
+    return <Redirect to="/admin" />
   }
 
-  if (!electionResultStatus) return null
-
-  if (electionResultStatus.status === 'uploaded') {
+  if (!electionResultStatus || !electionResultsStats) return null
+  if (electionResultStatus === 'uploaded') {
     return (
       auth && auth.user && (
       <StatusBox
         headline="Election results successfully entered!"
         details={["You must contact the Election Administrator to re-enter election results"]}
-        electionName={auth.user.jurisdictions.filter(jurisdiction=>jurisdiction.election.id===electionId)[0].election.electionName }
+        electionName={auth.user.jurisdictions.filter(jurisdiction=>jurisdiction.election.id === electionId)[0].election.electionName}
       />)
     )
   }
   
   return (
-  <Wrapper>
-    <ResponsiveInner>
-      <ResultsDataForm />
-      <ResultsDataUpload />
-    </ResponsiveInner>
-  </Wrapper>
+  <>
+    { auth && auth.user && (
+      <>
+        <StatusBox
+          headline="Election Results Status"
+          details={[`${electionResultsStats.uploaded} out of ${electionResultsStats.uploaded + electionResultsStats.notUploaded} precinct results have been uploaded.`]}
+          electionName={auth.user.jurisdictions.filter(jurisdiction=>jurisdiction.election.id === electionId)[0].election.electionName}
+        />
+        <br />
+      </>
+      )
+    }
+    <Wrapper>
+      <ResponsiveInner>
+        <ResultsDataForm />
+        <ResultsDataUpload />
+      </ResponsiveInner>
+    </Wrapper>
+  </>
   )
 }
 
