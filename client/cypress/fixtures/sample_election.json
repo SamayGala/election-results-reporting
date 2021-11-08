@@ -1,11 +1,190 @@
 {
-  "title": "General Election",
+  "title": "Mock General Election 2020",
   "state": "State of Mississippi",
-  "county": {
-    "id": "10",
-    "name": "Choctaw County"
-  },
-  "date": "2019-11-05T00:00:00-08:00",
+  "counties": [
+    {
+      "id": "10",
+      "name": "Choctaw County",
+      "precincts": [
+        {
+          "id": "6522",
+          "name": "District 5"
+        },
+        {
+          "id": "6524",
+          "name": "Chester"
+        },
+        {
+          "id": "6525",
+          "name": "East Weir"
+        },
+        {
+          "id": "6526",
+          "name": "French Camp"
+        },
+        {
+          "id": "6527",
+          "name": "Fentress"
+        },
+        {
+          "id": "6528",
+          "name": "Hebron"
+        },
+        {
+          "id": "6529",
+          "name": "Kenego"
+        },
+        {
+          "id": "6532",
+          "name": "Panhandle"
+        },
+        {
+          "id": "6534",
+          "name": "Reform"
+        },
+        {
+          "id": "6536",
+          "name": "Sherwood"
+        },
+        {
+          "id": "6537",
+          "name": "Southwest Ackerman"
+        },
+        {
+          "id": "6538",
+          "name": "Bywy"
+        },
+        {
+          "id": "6539",
+          "name": "West Weir"
+        }
+      ]
+    },
+    {
+      "id": "18",
+      "name": "Franklin County",
+      "precincts": [
+        {
+          "id": "6822",
+          "name": "Knoxville"
+        },
+        {
+          "id": "6824",
+          "name": "Roxie"
+        },
+        {
+          "id": "6825",
+          "name": "Antioch"
+        },
+        {
+          "id": "6826",
+          "name": "Hamburg"
+        },
+        {
+          "id": "6827",
+          "name": "Meadville"
+        },
+        {
+          "id": "6828",
+          "name": "Bude"
+        },
+        {
+          "id": "6829",
+          "name": "Pine Grove"
+        },
+        {
+          "id": "6832",
+          "name": "Wesley Chapel"
+        },
+        {
+          "id": "6834",
+          "name": "Eddiceton"
+        },
+        {
+          "id": "6836",
+          "name": "Lucien"
+        },
+        {
+          "id": "6837",
+          "name": "Mccall"
+        },
+        {
+          "id": "6838",
+          "name": "Bad Bayou"
+        },
+        {
+          "id": "6839",
+          "name": "Cains"
+        },
+        {
+          "id": "6839",
+          "name": "Whittington"
+        }
+      ]
+    },
+    {
+      "id": "21",
+      "name": "Kemper County",
+      "precincts": [
+        {
+          "id": "6922",
+          "name": "Scooba A-L"
+        },
+        {
+          "id": "6924",
+          "name": "Scooba M-Z"
+        },
+        {
+          "id": "6925",
+          "name": "Farmers Market"
+        },
+        {
+          "id": "6926",
+          "name": "Band Building"
+        },
+        {
+          "id": "6927",
+          "name": "Porterville"
+        },
+        {
+          "id": "6928",
+          "name": "Kemper Springs"
+        },
+        {
+          "id": "6929",
+          "name": "Fort Stevens"
+        },
+        {
+          "id": "6932",
+          "name": "Lynwood"
+        },
+        {
+          "id": "6934",
+          "name": "Lynville"
+        },
+        {
+          "id": "6936",
+          "name": "Preston"
+        },
+        {
+          "id": "6937",
+          "name": "Kellis Store"
+        },
+        {
+          "id": "6938",
+          "name": "Courthouse"
+        },
+        {
+          "id": "6939",
+          "name": "Mount Nebo"
+        },
+        {
+          "id": "6939",
+          "name": "Satellite"
+        }
+      ]
+    }
+  ],
   "parties": [
     {
       "id": "2",
@@ -76,19 +255,19 @@
     {
       "id": "575000002",
       "name": "Prohibition",
-      "fullName": "Prohibition Party",      
+      "fullName": "Prohibition Party",
       "abbrev": "PRO"
     },
     {
       "id": "575000003",
       "name": "American Delta",
-      "fullName": "American Delta Party",      
+      "fullName": "American Delta Party",
       "abbrev": "ADP"
     },
     {
       "id": "575000004",
       "name": "Veterans",
-      "fullName": "Veterans Party",      
+      "fullName": "Veterans Party",
       "abbrev": "VET"
     }
   ],
@@ -618,240 +797,44 @@
   ],
   "districts": [
     {
+      "id": "1",
+      "name": "United States"
+    },
+    {
       "id": "100000275",
       "name": "State Of Mississippi"
     },
     {
-      "id": "575001705",
-      "name": "Public Service Commissioner"
+      "id": "100000047",
+      "name": "US House Of Representatives"
     },
     {
-      "id": "575001697",
-      "name": "Transportation Commissioner"
+      "id": "100000174",
+      "name": "Northern District"
     },
     {
-      "id": "100000362",
-      "name": "District Attorney 05"
+      "id": "575000501",
+      "name": "Election Commissioner 01"
     },
     {
-      "id": "100000234",
-      "name": "State Senate 15"
+      "id": "575000502",
+      "name": "Election Commissioner 02"
     },
     {
-      "id": "100000085",
-      "name": "State House Of Rep 35"
+      "id": "575000503",
+      "name": "Election Commissioner 03"
     },
     {
-      "id": "100000285",
-      "name": "Choctaw"
+      "id": "575000504",
+      "name": "Election Commissioner 04"
     },
     {
-      "id": "575000496",
-      "name": "Supervisor 01"
+      "id": "575000505",
+      "name": "Election Commissioner 05"
     },
     {
-      "id": "575000497",
-      "name": "Supervisor 02"
-    },
-    {
-      "id": "575000498",
-      "name": "Supervisor 03"
-    },
-    {
-      "id": "575000499",
-      "name": "Supervisor 04"
-    },
-    {
-      "id": "575000500",
-      "name": "Supervisor 05"
-    },
-    {
-      "id": "575000506",
-      "name": "Justice Court Judge Post 1"
-    },
-    {
-      "id": "575000507",
-      "name": "Justice Court Judge Post 2"
-    },
-    {
-      "id": "575000508",
-      "name": "Constable Post 01"
-    },
-    {
-      "id": "575000509",
-      "name": "Constable Post 02"
-    }
-  ],
-  "precincts": [
-    {
-      "id": "6522",
-      "name": "District 5"
-    },
-    {
-      "id": "6524",
-      "name": "Chester"
-    },
-    {
-      "id": "6525",
-      "name": "East Weir"
-    },
-    {
-      "id": "6526",
-      "name": "French Camp"
-    },
-    {
-      "id": "6527",
-      "name": "Fentress"
-    },
-    {
-      "id": "6528",
-      "name": "Hebron"
-    },
-    {
-      "id": "6529",
-      "name": "Kenego"
-    },
-    {
-      "id": "6532",
-      "name": "Panhandle"
-    },
-    {
-      "id": "6534",
-      "name": "Reform"
-    },
-    {
-      "id": "6536",
-      "name": "Sherwood"
-    },
-    {
-      "id": "6537",
-      "name": "Southwest Ackerman"
-    },
-    {
-      "id": "6538",
-      "name": "Bywy"
-    },
-    {
-      "id": "6539",
-      "name": "West Weir"
-    }
-  ],
-  "ballotStyles": [
-    {
-      "id": "8",
-      "precincts": [
-        "6538",
-        "6524",
-        "6527"
-      ],
-      "districts": [
-        "100000085",
-        "100000234",
-        "100000275",
-        "100000285",
-        "100000362",
-        "575000496",
-        "575000506",
-        "575000508",
-        "575001697",
-        "575001705"
-      ]
-    },
-    {
-      "id": "1",
-      "precincts": [
-        "6522"
-      ],
-      "districts": [
-        "100000085",
-        "100000234",
-        "100000275",
-        "100000285",
-        "100000362",
-        "575000500",
-        "575000507",
-        "575000509",
-        "575001697",
-        "575001705"
-      ]
-    },
-    {
-      "id": "2",
-      "precincts": [
-        "6522"
-      ],
-      "districts": [
-        "100000085",
-        "100000234",
-        "100000275",
-        "100000285",
-        "100000362",
-        "575000500",
-        "575000506",
-        "575000508",
-        "575001697",
-        "575001705"
-      ]
-    },
-    {
-      "id": "3",
-      "precincts": [
-        "6525",
-        "6532",
-        "6537"
-      ],
-      "districts": [
-        "100000085",
-        "100000234",
-        "100000275",
-        "100000285",
-        "100000362",
-        "575000499",
-        "575000507",
-        "575000509",
-        "575001697",
-        "575001705"
-      ]
-    },
-    {
-      "id": "4",
-      "precincts": [
-        "6526",
-        "6529",
-        "6539"
-      ],
-      "districts": [
-        "100000085",
-        "100000234",
-        "100000275",
-        "100000285",
-        "100000362",
-        "575000498",
-        "575000507",
-        "575000509",
-        "575001697",
-        "575001705"
-      ]
-    },
-    {
-      "id": "5",
-      "precincts": [
-        "6528",
-        "6534",
-        "6536"
-      ],
-      "districts": [
-        "100000085",
-        "100000234",
-        "100000275",
-        "100000285",
-        "100000362",
-        "575000497",
-        "575000506",
-        "575000508",
-        "575001697",
-        "575001705"
-      ]
+      "id": "575000084",
+      "name": "School Board District 5"
     }
   ],
   "sealURL": "/seals/Seal_of_Mississippi_BW.svg"

@@ -44,7 +44,7 @@ describe('renders the home page', () => {
     cy.get(
       '[for="definition"] > .bp3-file-input > .bp3-file-upload-input'
     ).click()
-    cy.fixture('election-upgraded-2020-07-28.json').then((fileContent) => {
+    cy.fixture('sample_election.json').then((fileContent) => {
       cy.get('[for="definition"] > .bp3-file-input > input')
         .first()
         .attachFile({
@@ -60,19 +60,23 @@ describe('renders the home page', () => {
   it('logins as a jurisdiction admin', () => {
     cy.visit('/admin')
     cy.loginJurisdictionAdmin('admin@rebelalliance.ninja')
-    cy.get('#precinct').select('Bywy')
+    cy.get('#precinct').select('Antioch')
     cy.get('#totalBallotsCast').clear()
     cy.get('#totalBallotsCast').type('10')
-    cy.get('#contests\\[0\\]\\.id').select('Coroner')
+    cy.get('#contests\\[0\\]\\.id').select('Circuit Clerk')
     cy.get('#contests\\[0\\]\\.candidates\\[0\\]\\.id').clear()
     cy.get('#contests\\[0\\]\\.candidates\\[0\\]\\.id').type('5')
     cy.get('#contests\\[0\\]\\.candidates\\[1\\]\\.id').clear()
     cy.get('#contests\\[0\\]\\.candidates\\[1\\]\\.id').type('5')
     cy.get('.bp3-large > .bp3-button-text').click()
 
-    cy.contains('Election results successfully entered!')
-    cy.get('.bp3-button-text').click()
-    cy.get('.bp3-menu-item > .bp3-fill').click()
+    cy.contains('Election Results Status')
+    cy.contains('1 out of 14 precinct results have been uploaded.')
+    /* ==== Generated with Cypress Studio ==== */
+    cy.get('.bp3-popover-target > .bp3-button > .bp3-button-text').click()
+    cy.contains('Log out').click()
+    cy.visit('/')
+    /* ==== End Cypress Studio ==== */
   })
   it('login to election admin to see result', () => {
     cy.visit('/admin')
